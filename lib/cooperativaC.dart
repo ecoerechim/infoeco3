@@ -71,7 +71,7 @@ class _CooperativaState extends State<Cooperativa> {
         'cnpj': _cnpjController.text,
         'email': _emailController.text,
         'prefeitura_uid': _selectedPrefeituraUid, // Salva o UID da prefeitura escolhida
-        'aprovacao_prfeitura': false, // Adicionado campo de aprovação
+        'aprovacao_prefeitura': false, // Adicionado campo de aprovação
         'materiais': {
           'Papel': {'preco': 0.0, 'partilha': 'Individual'},
           'Papelão': {'preco': 0.0, 'partilha': 'Individual'},
