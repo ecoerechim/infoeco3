@@ -119,7 +119,7 @@ class _VerificarCooperadosState extends State<VerificarCooperados> {
                               ],
                               rows: docs.map((doc) {
                                 final data = doc.data() as Map<String, dynamic>;
-                                final aprovado = data['aprovacao_cooperativa'] == true;
+                                final aprovado = data['aprovacao_cooperativa'] == true || data['isAprovado'] == true;
                                 final bool foiDispensado = data.containsKey('DataSaida') && data['DataSaida'] != null;
                                 String nome = data['nome'] ?? '-';
                                 if (foiDispensado) {
@@ -168,7 +168,7 @@ class _VerificarCooperadosState extends State<VerificarCooperados> {
                                                         await FirebaseFirestore.instance
                                                             .collection('users')
                                                             .doc(doc.id)
-                                                            .update({'isAprovado': true});
+                                                            .update({'aprovacao_cooperativa': true});
                                                         setState(() {});
                                                       },
                                                 style: ElevatedButton.styleFrom(

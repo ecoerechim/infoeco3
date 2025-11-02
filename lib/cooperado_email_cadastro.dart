@@ -73,7 +73,7 @@ class _CooperadoEmailCadastroState extends State<CooperadoEmailCadastro> {
         'cpf': _cpfController.text,
         'email': _emailController.text,
         'cooperativa_uid': _selectedCooperativa!['uid'], // Salva o UID da cooperativa
-        'isAprovado': false,
+        'aprovacao_cooperativa': false,
         'materiais_qtd': {
           "ALUMINIO DURO": 0,
           "ALUMINIO GROSSO": 0,

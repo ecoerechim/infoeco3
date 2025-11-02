@@ -71,16 +71,14 @@ class _CooperativaState extends State<Cooperativa> {
         'cnpj': _cnpjController.text,
         'email': _emailController.text,
         'prefeitura_uid': _selectedPrefeituraUid, // Salva o UID da prefeitura escolhida
-        'isAprovado': false, // Adicionado campo de aprovação
-        'materiais_preco': {
-          "ALUMINIO DURO": 999.9,
-          "ALUMINIO GROSSO": 999.9,
-          "VIDRO": 999.9
-        },
-        'materiais_qtd': {
-          "ALUMINIO DURO": 0,
-          "ALUMINIO GROSSO": 0,
-          "VIDRO": 0
+        'aprovacao_prfeitura': false, // Adicionado campo de aprovação
+        'materiais': {
+          'Papel': {'preco': 0.0, 'partilha': 'Individual'},
+          'Papelão': {'preco': 0.0, 'partilha': 'Individual'},
+          'Plástico': {'preco': 0.0, 'partilha': 'Individual'},
+          'Vidro': {'preco': 0.0, 'partilha': 'Individual'},
+          'Metal': {'preco': 0.0, 'partilha': 'Individual'},
+          'Orgânico': {'preco': 0.0, 'partilha': 'Individual'},
         }
       });
       // Salva o perfil do usuário na coleção 'users'
