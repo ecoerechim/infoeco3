@@ -43,7 +43,7 @@ class _CooperadoEmailLoginState extends State<CooperadoEmailLogin> {
       if (userDoc.exists && 
           userDoc.data()?['role'] == UserRole.cooperado.toString().split('.').last) {
         
-        if (userDoc.data()?['aprovacao_cooperativa'] == true) {
+        if (userDoc.data()?['isAprovado'] == true) {
           // 3. Role is correct and user is approved, navigate to menu
           if (mounted) {
             Navigator.of(context).pushReplacement(

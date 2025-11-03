@@ -168,7 +168,7 @@ class _VerificarCooperadosState extends State<VerificarCooperados> {
                                                         await FirebaseFirestore.instance
                                                             .collection('users')
                                                             .doc(doc.id)
-                                                            .update({'aprovacao_cooperativa': true});
+                                                            .update({'isAprovado': true});
                                                         setState(() {});
                                                       },
                                                 style: ElevatedButton.styleFrom(
