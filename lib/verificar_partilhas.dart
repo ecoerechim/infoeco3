@@ -64,7 +64,7 @@ class _VerificarPartilhasState extends State<VerificarPartilhas> {
         .doc(prefeituraUid)
         .collection('cooperativas')
         .doc(cooperativaUid)
-        .collection('partilhas_cooperados')
+        .collection('partilhas_realizadas')
         .orderBy('timestamp', descending: true)
         .get();
     setState(() {
@@ -147,7 +147,7 @@ class _VerificarPartilhasState extends State<VerificarPartilhas> {
                 context,
                 headers: headers,
                 rows: rows.map((row) => row.map((e) => e.toString()).toList()).toList(),
-                fileName: 'partilhas_cooperados',
+                fileName: 'partilhas_realizadas',
               );
             },
           ),
