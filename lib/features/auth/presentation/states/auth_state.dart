@@ -1,5 +1,5 @@
-// Auth state used by the AuthController and presentation layer
-// Defines the possible authentication statuses and an immutable state object
+// AuthStatus representa a situação atual do login.
+// Define os possíveis estados de autenticação e um objeto de estado imutável.
 
 enum AuthStatus { initial, loading, authenticated, error, unauthenticated }
 
