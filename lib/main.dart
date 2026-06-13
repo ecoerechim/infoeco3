@@ -10,6 +10,9 @@ import 'package:infoeco3/firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:infoeco3/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:infoeco3/features/auth/domain/usecases/sign_in_use_case.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,28 +27,36 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'InfoEco',
-      theme: ThemeData(
-        primarySwatch: Colors.green, // Cor primária
-        // Define um tema global para todos os ElevatedButtons no aplicativo.
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
- 
-          ), 
+    return MultiProvider(
+      providers: [
+        // Disponibiliza o AuthController em toda a aplicação
+        ChangeNotifierProvider(
+          create: (_) => AuthController(SignInUseCase()),
         ),
+      ],
+      child: MaterialApp(
+        title: 'InfoEco',
+        theme: ThemeData(
+          primarySwatch: Colors.green, // Cor primária
+          // Define um tema global para todos os ElevatedButtons no aplicativo.
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+
+            ),
+          ),
+        ),
+        locale: const Locale('pt', 'BR'),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('pt', 'BR'),
+        ],
+        home: const MyHomePage(title: 'InfoEco'),
       ),
-      locale: const Locale('pt', 'BR'),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('pt', 'BR'),
-      ],
-      home: const MyHomePage(title: 'InfoEco'),
     );
   }
 }
