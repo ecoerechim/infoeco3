@@ -1,6 +1,7 @@
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_api_datasource.dart';
 import '../models/login_response.dart';
+import '../models/register_request.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthApiDatasource datasource;
@@ -16,5 +17,10 @@ class AuthRepositoryImpl implements AuthRepository {
       email: email,
       password: password,
     );
+  }
+
+  @override
+  Future<void> register(RegisterRequest request) {
+    return datasource.register(request);
   }
 }
