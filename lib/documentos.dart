@@ -28,7 +28,7 @@ class _DocumentosState extends State<Documentos1> {
 
   void _selectDocument() async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.any, // Ser explícito sobre o tipo de arquivo
         withData: kIsWeb,
       );
