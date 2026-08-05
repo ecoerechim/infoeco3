@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-enum UserRole { cooperado, cooperativa, prefeitura, unknown }
+enum UserRole { cooperado, cooperativa, prefeitura, admin, unknown }
 
 class UserProfileInfo {
   final String? cooperativaUid;
@@ -84,8 +84,19 @@ class UserProfileService {
               isAprovado: data['isAprovado'] as bool? ?? false);
         } else if (userRole == UserRole.prefeitura) {
           return UserProfileInfo(prefeituraUid: userId, role: userRole);
+        } else if (userRole == UserRole.admin) {
+          return UserProfileInfo(role: UserRole.admin);
         }
       }
+    }
+
+    // Checar por admin (na coleção 'admins')
+    final adminDoc = await _firestore.collection('admins').doc(userId).get();
+    if (adminDoc.exists) {
+      await _firestore.collection('users').doc(userId).set({
+        'role': UserRole.admin.toString().split('.').last,
+      });
+      return UserProfileInfo(role: UserRole.admin);
     }
 
     // Checar por cooperado
