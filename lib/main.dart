@@ -1,8 +1,9 @@
 // Este arquivo é o ponto de entrada principal do aplicativo.
 // Ele inicializa o Firebase e define a tela inicial do aplicativo.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:infoeco3/cadastro.dart';
+import 'package:infoeco3/features/auth/presentation/pages/register_page.dart';
 import 'package:infoeco3/phone_auth.dart';
 import 'login.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,12 +14,33 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:infoeco3/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:infoeco3/features/auth/domain/usecases/sign_in_use_case.dart';
+import 'package:infoeco3/features/auth/domain/usecases/register_use_case.dart';
+import 'package:infoeco3/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:infoeco3/features/auth/data/datasources/auth_api_datasource.dart';
+import 'package:infoeco3/core/storage/token_storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  
+  // No Linux, o Firebase pode não estar configurado. 
+  // Envolvemos em um try-catch para permitir que o app inicie mesmo sem Firebase,
+  // já que agora usamos a API customizada para autenticação.
+  try {
+    if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.linux || defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.macOS)) {
+      // Opcional: Adicionar lógica específica para Desktop se necessário
+      // Por enquanto, tentamos inicializar apenas se as opções existirem para a plataforma
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    } else {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+  } catch (e) {
+    debugPrint('Aviso: Firebase não inicializado nesta plataforma: $e');
+  }
+
   runApp(const MyApp());
 }
 
@@ -27,15 +49,35 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // URL base do backend Java Spring (ajuste conforme necessário)
+    const String baseUrl = 'http://localhost:8086'; 
+
     return MultiProvider(
       providers: [
-        // Disponibiliza o AuthController em toda a aplicação
-        ChangeNotifierProvider(
-          create: (_) => AuthController(SignInUseCase()),
+        Provider(create: (_) => TokenStorage()),
+        Provider(create: (_) => AuthApiDatasource(baseUrl)),
+        ProxyProvider<AuthApiDatasource, AuthRepositoryImpl>(
+          update: (_, datasource, __) => AuthRepositoryImpl(datasource),
+        ),
+        ProxyProvider<AuthRepositoryImpl, SignInUseCase>(
+          update: (_, repository, __) => SignInUseCase(repository),
+        ),
+        ProxyProvider<AuthRepositoryImpl, RegisterUseCase>(
+          update: (_, repository, __) => RegisterUseCase(repository),
+        ),
+        ChangeNotifierProxyProvider3<SignInUseCase, RegisterUseCase, TokenStorage, AuthController>(
+          create: (context) => AuthController(
+            context.read<SignInUseCase>(),
+            context.read<RegisterUseCase>(),
+            context.read<TokenStorage>(),
+          ),
+          update: (context, signInUseCase, registerUseCase, tokenStorage, previous) =>
+              previous ?? AuthController(signInUseCase, registerUseCase, tokenStorage),
         ),
       ],
       child: MaterialApp(
         title: 'InfoEco',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.green, // Cor primária
           // Define um tema global para todos os ElevatedButtons no aplicativo.
@@ -134,14 +176,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: const Text('INICIAR SESSÃO', style: TextStyle(color: Colors.white)),
               ),
               const Padding(padding: EdgeInsets.all(10)),
-              ElevatedButton(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Cadastro())),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  minimumSize: const Size(300, 75), // Re-apply specific size if needed, or remove for full responsiveness
-                ),
-                child: const Text('CRIAR CONTA', style: TextStyle(color: Colors.white)),
-              ),
+               ElevatedButton(
+                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterPage())),
+                 style: ElevatedButton.styleFrom(
+                   backgroundColor: Colors.green,
+                   minimumSize: const Size(300, 75), // Re-apply specific size if needed, or remove for full responsiveness
+                 ),
+                 child: const Text('CRIAR CONTA', style: TextStyle(color: Colors.white)),
+               ),
               const Padding(padding: EdgeInsets.all(10)),
             ],
           ),
