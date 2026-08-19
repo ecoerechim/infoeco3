@@ -16,13 +16,13 @@ class AuthController extends ChangeNotifier {
   AuthState _state = const AuthState();
   AuthState get state => _state;
 
-  /// Tenta autenticar com email e senha e atualiza o estado.
-  Future<void> login(String email, String password) async {
+  /// Tenta autenticar com identificador (email, cpf ou telefone) e senha e atualiza o estado.
+  Future<void> login(String identifier, String password) async {
     _state = _state.copyWith(status: AuthStatus.loading, errorMessage: null);
     notifyListeners();
 
     try {
-      final result = await _signInUseCase(email, password);
+      final result = await _signInUseCase(identifier, password);
       
       await _tokenStorage.saveToken(result.accessToken);
 
