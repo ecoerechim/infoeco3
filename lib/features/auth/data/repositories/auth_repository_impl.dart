@@ -10,11 +10,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<LoginResponse> login({
-    required String email,
+    required String identifier,
     required String password,
   }) {
     return datasource.login(
-      email: email,
+      identifier: identifier,
       password: password,
     );
   }
