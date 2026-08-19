@@ -9,7 +9,7 @@ class AuthApiDatasource {
   AuthApiDatasource(this.baseUrl);
 
   Future<LoginResponse> login({
-    required String email,
+    required String identifier,
     required String password,
   }) async {
     final response = await http.post(
@@ -18,7 +18,7 @@ class AuthApiDatasource {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        'email': email,
+        'identifier': identifier,
         'password': password,
       }),
     );
