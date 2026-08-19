@@ -20,6 +20,7 @@ class _CadastroState extends State<Cadastro> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _documentoController = TextEditingController();
+  final _telefoneController = TextEditingController();
 
   String _selectedRole = 'cooperado'; // Default role
 
@@ -33,6 +34,11 @@ class _CadastroState extends State<Cadastro> {
     filter: {"#": RegExp(r'[0-9]')},
   );
 
+  final _telefoneFormatter = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+
   @override
   void dispose() {
     _nomeController.dispose();
@@ -40,6 +46,7 @@ class _CadastroState extends State<Cadastro> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _documentoController.dispose();
+    _telefoneController.dispose();
     super.dispose();
   }
 
@@ -60,6 +67,7 @@ class _CadastroState extends State<Cadastro> {
         password: _passwordController.text,
         role: _selectedRole,
         documento: _documentoController.text.replaceAll(RegExp(r'[^0-9]'), ''),
+        telefone: _telefoneController.text.replaceAll(RegExp(r'[^0-9]'), ''),
       );
 
       final authController = context.read<AuthController>();
@@ -105,7 +113,7 @@ class _CadastroState extends State<Cadastro> {
 
               // Combobox de Tipo de Usuário
               DropdownButtonFormField<String>(
-                value: _selectedRole,
+                initialValue: _selectedRole,
                 decoration: const InputDecoration(
                   labelText: 'Eu sou...',
                   border: OutlineInputBorder(),
@@ -146,6 +154,20 @@ class _CadastroState extends State<Cadastro> {
                   if (!value.contains('@')) return 'Email inválido';
                   return null;
                 },
+              ),
+              const SizedBox(height: 20),
+
+              // Telefone
+              TextFormField(
+                controller: _telefoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Telefone',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.phone),
+                ),
+                keyboardType: TextInputType.phone,
+                inputFormatters: [_telefoneFormatter],
+                validator: (value) => value == null || value.isEmpty ? 'Informe seu telefone' : null,
               ),
               const SizedBox(height: 20),
 

@@ -13,7 +13,7 @@ class AuthApiDatasource {
     required String password,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/auth/login'),
+      Uri.parse('$baseUrl/api/auth/login'),
       headers: {
         'Content-Type': 'application/json',
       },
