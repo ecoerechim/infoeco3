@@ -20,7 +20,7 @@ class RegisterRequest {
       'nome': nome,
       'email': email,
       'password': password,
-      'role': role,
+      'role': role.toUpperCase(),
       'documento': documento,
       'telefone': telefone,
     };
