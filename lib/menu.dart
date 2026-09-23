@@ -19,6 +19,8 @@ import 'package:infoeco3/verificarCooperativas.dart';
 import 'package:infoeco3/verificarDocumentos.dart';
 import 'package:infoeco3/verificar_partilhas.dart';
 import 'package:infoeco3/verificar_coletas.dart';
+import 'package:infoeco3/features/cooperativas/presentation/pages/cooperativas_page.dart';
+import 'package:infoeco3/features/cooperados/presentation/pages/cooperados_page.dart';
 import 'package:infoeco3/widgets/large_menu_button.dart';
 import 'package:infoeco3/main.dart';
 import 'package:infoeco3/user_profile_service.dart';
@@ -353,8 +355,10 @@ class _MenuState extends State<Menu> {
         color: Colors.green,
       ),
       _menuItem(
-        onPressed: () => Navigator.push(context,
-            MaterialPageRoute(builder: (context) => VerificarCooperativas())),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CooperativasPage()),
+        ),
         text: 'VISUALIZAR COOPERATIVAS',
         color: Colors.teal,
       ),
@@ -451,20 +455,26 @@ class _MenuState extends State<Menu> {
   List<Widget> _buildCooperativaButtons(BuildContext context) {
     return [
       _menuItem(
-        onPressed: () => Navigator.push(context,
-            MaterialPageRoute(builder: (context) => VerificarCooperados())),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CooperadosPage()),
+        ),
         text: 'APROVAR COOPERADOS',
         color: Colors.green,
       ),
       _menuItem(
-        onPressed: () => Navigator.push(context,
-            MaterialPageRoute(builder: (context) => VerificarCooperados())),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CooperadosPage()),
+        ),
         text: 'EDITAR COOPERADOS',
         color: Colors.green,
       ),
       _menuItem(
-        onPressed: () => Navigator.push(context,
-            MaterialPageRoute(builder: (context) => VerificarCooperados())),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CooperadosPage()),
+        ),
         text: 'DESATIVAR COOPERADOS',
         color: Colors.redAccent,
       ),
