@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 import '../states/auth_state.dart';
 import '../../data/models/register_request.dart';
+import './sms_verification_dialog.dart';
 
 class RegisterFormWidget extends StatefulWidget {
   const RegisterFormWidget({super.key});
@@ -61,29 +62,54 @@ class _RegisterFormWidgetState extends State<RegisterFormWidget> {
 
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
-      final request = RegisterRequest(
-        nome: _nomeController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        role: _selectedRole,
-        documento: _documentoController.text.replaceAll(RegExp(r'[^0-9]'), ''),
-        telefone: _telefoneController.text.replaceAll(RegExp(r'[^0-9]'), ''),
-      );
-
       final authController = context.read<AuthController>();
-      await authController.register(request);
+      final phoneNumber = _telefoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
 
-      if (mounted) {
-        if (authController.state.status == AuthStatus.error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(authController.state.errorMessage ?? 'Erro ao cadastrar')),
+      // Passo 1: Enviar SMS de verificação
+      await authController.sendVerificationCode(
+        phoneNumber: phoneNumber,
+        onCodeSent: (verificationId) {
+          // Passo 2: Mostrar Diálogo de Verificação
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => SmsVerificationDialog(
+              verificationId: verificationId,
+              onVerified: () => _completeRegistration(authController),
+            ),
           );
-        } else {
+        },
+        onVerificationFailed: (errorMessage) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cadastro realizado com sucesso!')),
+            SnackBar(content: Text(errorMessage)),
           );
-          Navigator.of(context).pop(); // Voltar após sucesso
-        }
+        },
+      );
+    }
+  }
+
+  Future<void> _completeRegistration(AuthController authController) async {
+    final request = RegisterRequest(
+      nome: _nomeController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      role: _selectedRole,
+      documento: _documentoController.text.replaceAll(RegExp(r'[^0-9]'), ''),
+      telefone: _telefoneController.text.replaceAll(RegExp(r'[^0-9]'), ''),
+    );
+
+    await authController.register(request);
+
+    if (mounted) {
+      if (authController.state.status == AuthStatus.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(authController.state.errorMessage ?? 'Erro ao cadastrar')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cadastro realizado com sucesso!')),
+        );
+        Navigator.of(context).pop(); // Voltar após sucesso
       }
     }
   }
