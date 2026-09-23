@@ -8,4 +8,15 @@ abstract class AuthRepository {
   });
 
   Future<void> register(RegisterRequest request);
+
+  Future<void> verifyPhone({
+    required String phoneNumber,
+    required void Function(String verificationId) onCodeSent,
+    required void Function(String errorMessage) onVerificationFailed,
+  });
+
+  Future<void> verifyOtp({
+    required String verificationId,
+    required String smsCode,
+  });
 }
