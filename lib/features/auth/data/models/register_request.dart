@@ -5,6 +5,8 @@ class RegisterRequest {
   final String role;
   final String documento; // CPF ou CNPJ
   final String telefone;
+  final String? prefeituraNome;
+  final String? prefeituraId;
 
   RegisterRequest({
     required this.nome,
@@ -13,10 +15,12 @@ class RegisterRequest {
     required this.role,
     required this.documento,
     required this.telefone,
+    this.prefeituraNome,
+    this.prefeituraId,
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final map = <String, dynamic>{
       'nome': nome,
       'email': email,
       'password': password,
@@ -24,5 +28,15 @@ class RegisterRequest {
       'documento': documento,
       'telefone': telefone,
     };
+
+    if (prefeituraNome != null && prefeituraNome!.trim().isNotEmpty) {
+      map['prefeituraNome'] = prefeituraNome!.trim();
+      map['nomePrefeitura'] = prefeituraNome!.trim();
+    }
+    if (prefeituraId != null && prefeituraId!.trim().isNotEmpty) {
+      map['prefeituraId'] = prefeituraId!.trim();
+    }
+
+    return map;
   }
 }

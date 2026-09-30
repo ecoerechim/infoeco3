@@ -22,6 +22,7 @@ class _RegisterFormWidgetState extends State<RegisterFormWidget> {
   final _confirmPasswordController = TextEditingController();
   final _documentoController = TextEditingController();
   final _telefoneController = TextEditingController();
+  final _prefeituraNomeController = TextEditingController();
 
   String _selectedRole = 'cooperado'; // Default role
 
@@ -48,6 +49,7 @@ class _RegisterFormWidgetState extends State<RegisterFormWidget> {
     _confirmPasswordController.dispose();
     _documentoController.dispose();
     _telefoneController.dispose();
+    _prefeituraNomeController.dispose();
     super.dispose();
   }
 
@@ -56,6 +58,7 @@ class _RegisterFormWidgetState extends State<RegisterFormWidget> {
       setState(() {
         _selectedRole = newRole;
         _documentoController.clear();
+        _prefeituraNomeController.clear();
       });
     }
   }
@@ -96,6 +99,9 @@ class _RegisterFormWidgetState extends State<RegisterFormWidget> {
       role: _selectedRole,
       documento: _documentoController.text.replaceAll(RegExp(r'[^0-9]'), ''),
       telefone: _telefoneController.text.replaceAll(RegExp(r'[^0-9]'), ''),
+      prefeituraNome: _selectedRole == 'prefeitura'
+          ? _prefeituraNomeController.text.trim()
+          : null,
     );
 
     await authController.register(request);
@@ -146,6 +152,25 @@ class _RegisterFormWidgetState extends State<RegisterFormWidget> {
             onChanged: authStatus == AuthStatus.loading ? null : _onRoleChanged,
           ),
           const SizedBox(height: 20),
+
+          if (_selectedRole == 'prefeitura') ...[
+            TextFormField(
+              controller: _prefeituraNomeController,
+              decoration: const InputDecoration(
+                labelText: 'Nome da Prefeitura / Município',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.location_city),
+              ),
+              validator: (value) {
+                if (_selectedRole == 'prefeitura' &&
+                    (value == null || value.trim().isEmpty)) {
+                  return 'Informe o nome da prefeitura ou município';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+          ],
 
           // Nome
           TextFormField(
