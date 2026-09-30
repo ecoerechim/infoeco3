@@ -12,11 +12,16 @@ class LoginResponse {
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
+    final token = (json['accessToken'] ?? json['token'] ?? '').toString();
+    final refreshToken =
+        (json['refreshToken'] ?? json['refresh_token'] ?? '').toString();
+    final role = (json['role'] ?? '').toString().toLowerCase();
+
     return LoginResponse(
-      accessToken: json['accessToken'] ?? '',
-      refreshToken: json['refreshToken'] ?? '',
-      nome: json['nome'] ?? '',
-      role: json['role'] ?? '',
+      accessToken: token,
+      refreshToken: refreshToken,
+      nome: (json['nome'] ?? json['name'] ?? '').toString(),
+      role: role,
     );
   }
 }
