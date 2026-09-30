@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../../core/network/authenticated_api_client.dart';
 import '../../data/models/cooperativa_model.dart';
 import '../../domain/repositories/cooperativas_repository.dart';
 
@@ -12,6 +13,13 @@ class CooperativasController extends ChangeNotifier {
   String? errorMessage;
   List<CooperativaModel> cooperativas = [];
 
+  String _formatError(Object e) {
+    if (e is ApiException) {
+      return e.message;
+    }
+    return e.toString();
+  }
+
   Future<void> load() async {
     isLoading = true;
     errorMessage = null;
@@ -21,7 +29,7 @@ class CooperativasController extends ChangeNotifier {
       cooperativas = await _repository.getAll();
       errorMessage = null;
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = _formatError(e);
     } finally {
       isLoading = false;
       notifyListeners();
@@ -37,7 +45,7 @@ class CooperativasController extends ChangeNotifier {
       await _repository.create(model.toCreatePayload());
       await load();
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = _formatError(e);
       isLoading = false;
       notifyListeners();
       rethrow;
@@ -57,7 +65,7 @@ class CooperativasController extends ChangeNotifier {
       await _repository.update(model.id!, model.toCreatePayload());
       await load();
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = _formatError(e);
       isLoading = false;
       notifyListeners();
       rethrow;
@@ -73,7 +81,7 @@ class CooperativasController extends ChangeNotifier {
       await _repository.delete(id);
       await load();
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = _formatError(e);
       isLoading = false;
       notifyListeners();
       rethrow;
