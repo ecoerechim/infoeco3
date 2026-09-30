@@ -16,19 +16,33 @@ class ApiException implements Exception {
 }
 
 class AuthenticatedApiClient {
-  AuthenticatedApiClient(this._tokenStorage, {String? baseUrl})
-      : _baseUrl = baseUrl ?? ApiConfig.baseUrl;
+  AuthenticatedApiClient(
+    this._tokenStorage, {
+    String? baseUrl,
+    http.Client? httpClient,
+  })  : _baseUrl = baseUrl ?? ApiConfig.baseUrl,
+        _httpClient = httpClient ?? http.Client();
 
   final TokenStorage _tokenStorage;
   final String _baseUrl;
+  final http.Client _httpClient;
 
   Future<http.Response> request(
     String method,
     String path, {
     Map<String, dynamic>? body,
+    bool requireAuth = true,
   }) async {
-    final token = await _tokenStorage.getToken();
-    final headers = {
+    final token = await _tokenStorage.getValidToken();
+
+    if (requireAuth && (token == null || token.isEmpty)) {
+      throw ApiException(
+        401,
+        'Não autorizado: Token JWT ausente ou expirado. Por favor, faça login novamente.',
+      );
+    }
+
+    final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
@@ -41,21 +55,22 @@ class AuthenticatedApiClient {
     try {
       switch (method.toUpperCase()) {
         case 'GET':
-          response =
-              await http.get(uri, headers: headers).timeout(ApiConfig.timeout);
+          response = await _httpClient
+              .get(uri, headers: headers)
+              .timeout(ApiConfig.timeout);
           break;
         case 'POST':
-          response = await http
+          response = await _httpClient
               .post(uri, headers: headers, body: encodedBody)
               .timeout(ApiConfig.timeout);
           break;
         case 'PUT':
-          response = await http
+          response = await _httpClient
               .put(uri, headers: headers, body: encodedBody)
               .timeout(ApiConfig.timeout);
           break;
         case 'DELETE':
-          response = await http
+          response = await _httpClient
               .delete(uri, headers: headers, body: encodedBody)
               .timeout(ApiConfig.timeout);
           break;
@@ -64,6 +79,15 @@ class AuthenticatedApiClient {
       }
     } on Exception {
       rethrow;
+    }
+
+    if (response.statusCode == 401) {
+      await _tokenStorage.clear();
+      final extracted = _extractMessage(response.body);
+      final message = extracted.isNotEmpty && extracted != response.body
+          ? extracted
+          : 'Sessão expirada ou não autorizada (401). Faça login novamente.';
+      throw ApiException(401, message);
     }
 
     if (response.statusCode >= 400) {
