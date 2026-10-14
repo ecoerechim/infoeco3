@@ -3,9 +3,8 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:infoeco3/features/auth/presentation/pages/login_page.dart';
 import 'package:infoeco3/features/auth/presentation/pages/register_page.dart';
-import 'package:infoeco3/phone_auth.dart';
-import 'login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:infoeco3/firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,28 +16,23 @@ import 'package:infoeco3/features/auth/domain/usecases/sign_in_use_case.dart';
 import 'package:infoeco3/features/auth/domain/usecases/register_use_case.dart';
 import 'package:infoeco3/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:infoeco3/features/auth/data/datasources/auth_api_datasource.dart';
+import 'package:infoeco3/features/auth/data/datasources/auth_firebase_datasource.dart';
 import 'package:infoeco3/core/storage/token_storage.dart';
+import 'package:infoeco3/core/config/api_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // No Linux, o Firebase pode não estar configurado. 
+
+  // No Linux, o Firebase pode não estar configurado.
   // Envolvemos em um try-catch para permitir que o app inicie mesmo sem Firebase,
   // já que agora usamos a API customizada para autenticação.
   try {
-    if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.linux || defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.macOS)) {
-      // Opcional: Adicionar lógica específica para Desktop se necessário
-      // Por enquanto, tentamos inicializar apenas se as opções existirem para a plataforma
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    } else {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    }
+    // Inicialização do Firebase com tratamento de erro
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (e) {
-    debugPrint('Aviso: Firebase não inicializado nesta plataforma: $e');
+    debugPrint('Aviso: Firebase não inicializado: $e');
   }
 
   runApp(const MyApp());
@@ -49,15 +43,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // URL base do backend Java Spring (ajuste conforme necessário)
-    const String baseUrl = 'http://localhost:8086'; 
+    const String baseUrl = ApiConfig.baseUrl;
 
     return MultiProvider(
       providers: [
         Provider(create: (_) => TokenStorage()),
         Provider(create: (_) => AuthApiDatasource(baseUrl)),
-        ProxyProvider<AuthApiDatasource, AuthRepositoryImpl>(
-          update: (_, datasource, __) => AuthRepositoryImpl(datasource),
+        Provider(create: (_) => AuthFirebaseDatasource()),
+        ProxyProvider2<AuthApiDatasource, AuthFirebaseDatasource,
+            AuthRepositoryImpl>(
+          update: (_, apiDatasource, firebaseDatasource, __) =>
+              AuthRepositoryImpl(apiDatasource, firebaseDatasource),
         ),
         ProxyProvider<AuthRepositoryImpl, SignInUseCase>(
           update: (_, repository, __) => SignInUseCase(repository),
@@ -65,14 +61,17 @@ class MyApp extends StatelessWidget {
         ProxyProvider<AuthRepositoryImpl, RegisterUseCase>(
           update: (_, repository, __) => RegisterUseCase(repository),
         ),
-        ChangeNotifierProxyProvider3<SignInUseCase, RegisterUseCase, TokenStorage, AuthController>(
+        ChangeNotifierProxyProvider3<SignInUseCase, RegisterUseCase,
+            TokenStorage, AuthController>(
           create: (context) => AuthController(
             context.read<SignInUseCase>(),
             context.read<RegisterUseCase>(),
             context.read<TokenStorage>(),
           ),
-          update: (context, signInUseCase, registerUseCase, tokenStorage, previous) =>
-              previous ?? AuthController(signInUseCase, registerUseCase, tokenStorage),
+          update: (context, signInUseCase, registerUseCase, tokenStorage,
+                  previous) =>
+              previous ??
+              AuthController(signInUseCase, registerUseCase, tokenStorage),
         ),
       ],
       child: MaterialApp(
@@ -83,8 +82,8 @@ class MyApp extends StatelessWidget {
           // Define um tema global para todos os ElevatedButtons no aplicativo.
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0)),
             ),
           ),
         ),
@@ -116,34 +115,35 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false, 
-      onPopInvoked: (didPop) async {
-        if (didPop) return; 
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
         final bool confirmExit = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Confirmar Saída'),
-            content: const Text('Você tem certeza que deseja sair do aplicativo?'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancelar'),
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Confirmar Saída'),
+                content: const Text(
+                    'Você tem certeza que deseja sair do aplicativo?'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Cancelar'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text('Sair'),
+                  ),
+                ],
               ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Sair'),
-              ),
-            ],
-          ),
-        ) ?? false; 
+            ) ??
+            false;
 
-        if (confirmExit) {        
+        if (confirmExit) {
           if (mounted) {
             Navigator.of(context).pop();
           }
@@ -168,22 +168,29 @@ class _MyHomePageState extends State<MyHomePage> {
               const Padding(padding: EdgeInsets.all(10)),
               const Padding(padding: EdgeInsets.only(bottom: 70)),
               ElevatedButton(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Login())),
+                onPressed: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const LoginPage())),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   minimumSize: const Size(300, 75),
                 ),
-                child: const Text('INICIAR SESSÃO', style: TextStyle(color: Colors.white)),
+                child: const Text('INICIAR SESSÃO',
+                    style: TextStyle(color: Colors.white)),
               ),
               const Padding(padding: EdgeInsets.all(10)),
-               ElevatedButton(
-                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterPage())),
-                 style: ElevatedButton.styleFrom(
-                   backgroundColor: Colors.green,
-                   minimumSize: const Size(300, 75), // Re-apply specific size if needed, or remove for full responsiveness
-                 ),
-                 child: const Text('CRIAR CONTA', style: TextStyle(color: Colors.white)),
-               ),
+              ElevatedButton(
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const RegisterPage())),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  minimumSize: const Size(300,
+                      75), // Re-apply specific size if needed, or remove for full responsiveness
+                ),
+                child: const Text('CRIAR CONTA',
+                    style: TextStyle(color: Colors.white)),
+              ),
               const Padding(padding: EdgeInsets.all(10)),
             ],
           ),
